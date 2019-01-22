@@ -8,20 +8,11 @@ To train a toy model on your local machine follow the instructions.
 
 ### Setup python environment
 
-Conda users:
-
-~~~~
-conda env create -f conda_environment.yml
-~~~~
-
-Pip users:
 ~~~~
 python3 -m virtualenv env
 source env/bin/activate
 pip3 install -r requirements.txt
 ~~~~
-
-
 
 ### Load data
 
