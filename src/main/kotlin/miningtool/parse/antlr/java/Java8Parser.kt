@@ -1,7 +1,7 @@
 package miningtool.parse.antlr.java
 
-import me.vovak.antlr.parser.JavaLexer
-import me.vovak.antlr.parser.JavaParser
+import anonymous.antlr.parser.JavaLexer
+import anonymous.antlr.parser.JavaParser
 import miningtool.common.Parser
 import miningtool.parse.antlr.SimpleNode
 import miningtool.parse.antlr.convertAntlrTree

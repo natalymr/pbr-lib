@@ -55,8 +55,8 @@ task performanceTest(type: JavaExec) {
 
 antlr4 {
     source = file('antlr')
-    output = file('src/main/generated/me/vovak/antlr/parser')
-    extraArgs = ['-package', 'me.vovak.antlr.parser']
+    output = file('src/main/generated/anonymous/antlr/parser')
+    extraArgs = ['-package', 'anonymous.antlr.parser']
 }
 
 

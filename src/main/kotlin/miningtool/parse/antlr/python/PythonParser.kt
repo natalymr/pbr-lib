@@ -1,7 +1,7 @@
 package miningtool.parse.antlr.python
 
-import me.vovak.antlr.parser.Python3Lexer
-import me.vovak.antlr.parser.Python3Parser
+import anonymous.antlr.parser.Python3Lexer
+import anonymous.antlr.parser.Python3Parser
 import miningtool.common.Parser
 import miningtool.parse.antlr.SimpleNode
 import miningtool.parse.antlr.convertAntlrTree
