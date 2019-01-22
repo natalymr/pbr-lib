@@ -11,7 +11,7 @@ import java.io.File
 fun allJavaFiles() {
     val folder = "./testData/examples/"
 
-    val miner = PathMiner(PathRetrievalSettings(5, 5))
+    val miner = PathMiner(PathRetrievalSettings(maxHeight = 5, maxWidth = 5))
     val storage = VocabularyPathStorage()
 
     File(folder).walkTopDown().filter { it.path.endsWith(".java") }.forEach { file ->

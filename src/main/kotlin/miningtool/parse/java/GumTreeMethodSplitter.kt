@@ -30,11 +30,13 @@ class GumTreeMethodSplitter : TreeSplitter<GumTreeJavaNode> {
         }
     }
 
+    // extract method definition nodes from GumTree's native AST
     private fun getMethodNodes(treeContext: TreeContext): List<ITree> {
         return treeContext.root.descendants
                 .filter { treeContext.getTypeLabel(it.type) == TypeLabels.methodDeclaration }
     }
 
+    // extract method name from a method definition node
     private fun getMethodName(methodNode: ITree, context: TreeContext): String {
         val nameNode = methodNode.children.firstOrNull { context.getTypeLabel(it.type) == TypeLabels.simpleName }
         return nameNode?.label ?: ""
@@ -50,6 +52,7 @@ class GumTreeMethodSplitter : TreeSplitter<GumTreeJavaNode> {
         return nameNode?.label ?: ""
     }
 
+    // extract parameter types from a method definition node
     private fun getParameterTypes(methodNode: ITree, context: TreeContext): List<String> {
         val result: MutableList<String> = ArrayList()
         methodNode.children
@@ -64,6 +67,7 @@ class GumTreeMethodSplitter : TreeSplitter<GumTreeJavaNode> {
         return result
     }
 
+    // retrieve the metadata about the method as an info object
     private fun getMethodInfo(methodNode: ITree, context: TreeContext): MethodInfo {
         return MethodInfo(getEnclosingClassName(methodNode, context),
                 getMethodName(methodNode, context),
