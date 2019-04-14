@@ -16,6 +16,7 @@ fun allPythonFiles() {
 
     File(folder).walkTopDown().filter { it.path.endsWith(".py") }.forEach { file ->
         val node = PythonParser().parse(file.inputStream()) ?: return@forEach
+        node.prettyPrint()
         val paths = miner.retrievePaths(node)
 
         storage.store(paths.map { toPathContext(it) }, entityId = file.path)

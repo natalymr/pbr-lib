@@ -15,7 +15,9 @@ fun allJavaFilesGumTree() {
     val storage = VocabularyPathStorage()
 
     File(folder).walkTopDown().filter { it.path.endsWith(".java") }.forEach { file ->
+        println("file = $file")
         val node = GumTreeJavaParser().parse(file.inputStream()) ?: return@forEach
+        node.prettyPrint()
         val paths = miner.retrievePaths(node)
 
         storage.store(paths.map { toPathContext(it) }, entityId = file.path)

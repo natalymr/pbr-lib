@@ -35,6 +35,7 @@ dependencies {
     compile group: 'com.github.gumtreediff', name: 'client', version: '2.1.0'
     // https://mvnrepository.com/artifact/com.github.gumtreediff/gen.jdt
     compile group: 'com.github.gumtreediff', name: 'gen.jdt', version: '2.1.0'
+    compile 'junit:junit:4.11'
     testCompile "junit:junit:4.11"
     testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
 }

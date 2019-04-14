@@ -14,7 +14,7 @@ private fun convertRuleContext(ruleContext: ParserRuleContext, ruleNames: Array<
     val currentNode = SimpleNode(typeLabel, parent, null)
     val children: MutableList<Node> = ArrayList()
 
-    ruleContext.children.forEach {
+    ruleContext.children?.forEach {
         if (it is TerminalNode) {
             children.add(convertTerminal(it, currentNode))
             return@forEach
