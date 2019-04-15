@@ -17,6 +17,10 @@ fun runExamples() {
 //
 //    AllJavaFiles.runExample()
 
-    allCppFilesToAst()
+    //allCppFilesToAst()
     //allCppFilesToAstTaskClassification()
+    //cppTokenizerTest()
+    //cppTokenizerAllDataset()
+    //cppPreOrderedTraverseAllDataset()
+    pathCountCpp()
 }

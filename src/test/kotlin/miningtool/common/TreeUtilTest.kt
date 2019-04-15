@@ -1,8 +1,10 @@
 package miningtool.common
 
+import miningtool.examples.preOrderedTraverseAST
 import miningtool.examples.pyExample.Levenshtein1
 import miningtool.examples.pyExample.Prescription
 import miningtool.examples.sbt
+import miningtool.paths.PathWorker
 import org.junit.Assert
 import org.junit.Test
 
@@ -303,5 +305,35 @@ class TreeUtilTest {
         val sbt2: List<DummyNode> = sbt_nodes_for_test(root2)
 
         println(Levenshtein_for_nodes(sbt2, sbt1).route)
+    }
+
+    /*
+    * PreOrder AST
+    *
+    * */
+    @Test
+    fun preOrderedTraverseASTTest() {
+        val root = createDummyTreeForSbtAnother()
+        print(preOrderedTraverseAST(root))
+    }
+
+    @Test
+    fun preOrderedTraverseASTTest2() {
+        val root = createDummyTreeForSbt()
+        print(preOrderedTraverseAST(root))
+    }
+
+    @Test
+    fun pathCountDummyTree() {
+        val tree = createDummyTreeForSbt()
+        val nLeaves = tree.postOrder().count { it.isLeaf() }
+
+        val allPaths = PathWorker().retrievePaths(tree)
+        val expectedCount = (nLeaves * (nLeaves - 1)) / 2
+
+        Assert.assertEquals("A tree with $nLeaves leaves contains $expectedCount paths, " +
+                "one per distinct ordered pair of leaves. Worker returned ${allPaths.size}",
+                expectedCount, allPaths.size)
+
     }
 }

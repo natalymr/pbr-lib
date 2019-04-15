@@ -1,4 +1,4 @@
-// Generated from /home/q1/Documents/Diploma/ast_mining/pbr-lib/antlr/Python3.g4 by ANTLR 4.2.2
+// Generated from /home/nicolay/IdeaProjects/antlr/pbr-lib/antlr/Python3.g4 by ANTLR 4.2.2
 package me.vovak.antlr.parser;
 import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;

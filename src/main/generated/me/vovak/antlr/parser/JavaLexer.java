@@ -1,4 +1,4 @@
-// Generated from /home/q1/Documents/Diploma/ast_mining/pbr-lib/antlr/JavaLexer.g4 by ANTLR 4.2.2
+// Generated from /home/nicolay/IdeaProjects/antlr/pbr-lib/antlr/JavaLexer.g4 by ANTLR 4.2.2
 package me.vovak.antlr.parser;
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.CharStream;

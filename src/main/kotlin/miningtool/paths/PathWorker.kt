@@ -44,6 +44,7 @@ class PathWorker {
     }
 
     fun retrievePaths(tree: Node, maxHeight: Int, maxWidth: Int): Collection<ASTPath> {
+        println("Retrieve Paths")
         val iterator = tree.postOrderIterator()
         var currentLeafIndex = 0
         val paths: MutableList<ASTPath> = ArrayList()
