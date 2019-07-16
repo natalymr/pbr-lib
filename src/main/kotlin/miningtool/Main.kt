@@ -7,10 +7,12 @@ fun main(args: Array<String>) {
 }
 
 fun runExamples() {
-    allJavaFilesGumTree()
-    allJavaFiles()
-    allJavaMethods()
-    allPythonFiles()
+//    allJavaFilesGumTree()
+//    allJavaFiles()
+//    allJavaMethods()
 
-    AllJavaFiles.runExample()
+//    AllJavaFiles.runExample()
+
+    allBlobFilesDiff()
+    littleFunctionForTesting()
 }

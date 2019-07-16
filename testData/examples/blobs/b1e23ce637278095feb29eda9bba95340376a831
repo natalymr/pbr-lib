@@ -1,0 +1,126 @@
+/*
+ * Copyright (c) 2000-2006 JetBrains s.r.o. All Rights Reserved.
+ */
+package com.intellij.j2ee.ejb;
+
+import com.intellij.javaee.ejb.EjbUsageTarget;
+import com.intellij.javaee.ejb.EjbUtil;
+import com.intellij.javaee.model.common.ejb.EnterpriseBean;
+import com.intellij.javaee.model.xml.ejb.*;
+import com.intellij.javaee.module.components.EjbModuleProperties;
+import com.intellij.openapi.module.EjbUsageSearch;
+import com.intellij.openapi.util.Pair;
+import com.intellij.psi.PsiAnnotation;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiReference;
+import com.intellij.psi.impl.source.xml.XmlTextImpl;
+import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.xml.XmlTag;
+import com.intellij.ql.QlLanguageInjector;
+import com.intellij.ql.psi.QlFile;
+import com.intellij.ql.psi.QlRangedVariableDeclaration;
+import com.intellij.util.CommonProcessors;
+import com.intellij.util.Consumer;
+import com.intellij.util.xml.DomManager;
+import com.intellij.util.xml.GenericDomValue;
+
+import java.util.List;
+
+/**
+ * @author peter
+ */
+public class EjbFindUsagesTest extends EjbTestCase {
+
+  protected void setUp() throws Exception {
+    super.setUp();
+    addJavaeeLibraryToRoots(getModule());
+    getPsiManager().registerLanguageInjector(new QlLanguageInjector(getPsiManager()), getProject());
+  }
+
+  public void testEnterpriseBeanUsages() throws Throwable {
+    final EjbModuleProperties properties = getEjbModuleProperties();
+    final EjbJar root = properties.getXmlRoot();
+    root.getVersion().setValue("3.0");
+
+    final com.intellij.javaee.model.common.ejb.EntityBean ejb = EjbUtil.findEjbByName(properties.getMergedRoot().getEnterpriseBeans(), "EntityEJB");
+    final PsiClass aClass = createPhysicalClass("EntityEJB", "@javax.ejb.EJB(beanName=\"EntityEJB\")", "");
+    assertEquals(aClass, ejb.getEjbClass().getValue());
+    final PsiAnnotation annotation = aClass.getModifierList().getAnnotations()[0];
+
+    EntityBean domBean = EjbUtil.findEjbByName(properties.getXmlRoot().getEnterpriseBeans(), "EntityEJB");
+    final GenericDomValue<EnterpriseBean> remoteLink = domBean.addEjbRef().getEjbLink();
+    remoteLink.setValue(ejb);
+    final GenericDomValue<EnterpriseBean> localLink = domBean.addEjbLocalRef().getEjbLink();
+    localLink.setValue(ejb);
+
+    assertEquals("MyAbstractSchema", domBean.getAbstractSchemaName().getValue());
+    final GenericDomValue<String> ql = domBean.addQuery().getEjbQl();
+    ql.setValue("select o from MyAbstractSchema o");
+
+    final AssemblyDescriptor descriptor = root.getAssemblyDescriptor();
+    final List<MethodPermission> permissions = descriptor.getMethodPermissions();
+    final List<ContainerTransaction> transactions = descriptor.getContainerTransactions();
+    assertUnorderedCollection(EjbUsageSearch.EJB_USAGE_SEARCH.createQuery(Pair.create(ejb, GlobalSearchScope.allScope(getProject()))).findAll(), new Consumer<PsiReference>() {
+      public void consume(final PsiReference t) {
+        assertEquals(root.getRelationships().getEjbRelations().get(0).getEjbRelationshipRole2().getRelationshipRoleSource().getEntityBean(),
+                     getGenericValue(t));
+      }
+    }, new Consumer<PsiReference>() {
+      public void consume(final PsiReference t) {
+        assertEquals(permissions.get(0).getMethods().get(0).getEnterpriseBean(), getGenericValue(t));
+      }
+    }, new Consumer<PsiReference>() {
+      public void consume(final PsiReference t) {
+        assertEquals(permissions.get(1).getMethods().get(0).getEnterpriseBean(), getGenericValue(t));
+      }
+    }, new Consumer<PsiReference>() {
+      public void consume(final PsiReference t) {
+        assertEquals(permissions.get(2).getMethods().get(0).getEnterpriseBean(), getGenericValue(t));
+      }
+    }, new Consumer<PsiReference>() {
+      public void consume(final PsiReference t) {
+        assertEquals(transactions.get(0).getMethods().get(0).getEnterpriseBean(), getGenericValue(t));
+      }
+    }, new Consumer<PsiReference>() {
+      public void consume(final PsiReference t) {
+        assertEquals(transactions.get(1).getMethods().get(0).getEnterpriseBean(), getGenericValue(t));
+      }
+    }, new Consumer<PsiReference>() {
+      public void consume(final PsiReference t) {
+        assertEquals(descriptor.getExcludeList().getMethods().get(0).getEnterpriseBean(), getGenericValue(t));
+      }
+    }, new Consumer<PsiReference>() {
+      public void consume(final PsiReference t) {
+        assertEquals(annotation, getPsiElement(t));
+      }
+    }, new Consumer<PsiReference>() {
+      public void consume(final PsiReference t) {
+        assertEquals(remoteLink, getGenericValue(t));
+      }
+    }, new Consumer<PsiReference>() {
+      public void consume(final PsiReference t) {
+        assertEquals(localLink, getGenericValue(t));
+      }
+    });
+
+    final CommonProcessors.CollectProcessor<PsiReference> processor = new CommonProcessors.CollectProcessor<PsiReference>();
+    EjbUsageTarget.findUsagesInQl(ejb, processor);
+    assertUnorderedCollection(processor.getResults(), new Consumer<PsiReference>() {
+      public void consume(final PsiReference t) {
+        final QlFile qlFile = (QlFile)((XmlTextImpl)ql.getXmlTag().getValue().getTextElements()[0]).getInjectedPsi().get(0).getFirst();
+        final QlRangedVariableDeclaration declaration = (QlRangedVariableDeclaration)qlFile.getQuery().getFromClause().getDeclarations()[0];
+        assertEquals(declaration.getTypeReference(), getPsiElement(t));
+      }
+    });
+  }
+
+  private GenericDomValue getGenericValue(final PsiReference t) {
+    return assertInstanceOf(DomManager.getDomManager(getProject()).getDomElement((XmlTag)getPsiElement(t)), GenericDomValue.class);
+  }
+
+  private PsiElement getPsiElement(final PsiReference t) {
+    return t.getElement();
+  }
+
+}

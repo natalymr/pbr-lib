@@ -7,6 +7,7 @@ import miningtool.parse.antlr.SimpleNode
 import miningtool.parse.antlr.convertAntlrTree
 import org.antlr.v4.runtime.ANTLRInputStream
 import org.antlr.v4.runtime.CommonTokenStream
+import org.antlr.v4.runtime.Token
 import java.io.InputStream
 
 class Java8Parser : Parser<SimpleNode> {
@@ -20,4 +21,26 @@ class Java8Parser : Parser<SimpleNode> {
         return convertAntlrTree(context, JavaParser.ruleNames)
     }
 
+    fun tokenizer(content: InputStream): List<Token> {
+//        return JavaLexer(ANTLRInputStream(content)).allTokens
+        val lexer = JavaLexer(ANTLRInputStream(content))
+        val tokenList = lexer.allTokens
+//        for (token in tokenList) {
+//            println("Next token :"  + token.text)
+//        }
+        return tokenList
+    }
+
+    fun tokenizerForBlob(content: InputStream): List<String> {
+//        return JavaLexer(ANTLRInputStream(content)).allTokens
+        val lexer = JavaLexer(ANTLRInputStream(content))
+        lexer.removeErrorListeners()
+
+        val tokenList = lexer.allTokens
+        val result = mutableListOf<String>()
+        for (token in tokenList) {
+            result.add(token.text)
+        }
+        return result
+    }
 }
