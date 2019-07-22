@@ -5,8 +5,10 @@ package miningtool.examples
 
 import com.google.gson.GsonBuilder
 import miningtool.parse.antlr.java.Java8Parser
+import miningtool.parse.antlr.java.XmlParser
 import java.io.File
 import java.io.FileNotFoundException
+import java.io.FileWriter
 
 //Retrieve paths from Java files, using a generated parser.
 fun allJavaFiles() {
@@ -118,13 +120,33 @@ fun littleFunctionForTesting() {
 fun allBlobFilesDiff() {
     val separator = "THIS_STRING_WILL_NEVER_APPEAR_IN_DATASET_AND_IT_WILL_BE_USED_AS_SEPARATOR"
     val parentDirectory = "/Users/natalia.murycheva/Documents/gitCommitMessageCollectorStorage/"
-    val blobsDirectory = parentDirectory + File.separator + "intellij_blobs"
-    val fullLogFile = parentDirectory + File.separator + "gcm_intellij_full_no_header.log"
-    val outputFile = parentDirectory + File.separator + "intellij_diff_blobs.json"
-    val charactersToDelete = listOf("{", "}", "(", ")", ";", ".", ",", " ", "\n")
+    val gitDirectoryName = "aurora"
+    val blobsDirectory = parentDirectory + File.separator + "${gitDirectoryName}_blobs"
+    val fullLogFile = parentDirectory + File.separator + "gcm_${gitDirectoryName}_full_no_header.log"
+    val outputFile = parentDirectory + File.separator + "${gitDirectoryName}_diff_blobs_identifiers.json"
+    val separatorsToDelete = listOf("{", "}", "(", ")", "[", "]", ";", ".", ",", " ", "\n")
+    val operatorsToDelete = listOf("+", "-", "*", "/", "%", "<", ">", "<=", ">=",
+            "&&", "||", "!", "=", "+=", "-=", "*=", "/=", "++", "--", ">>", "<<", "^")
+    val keyWordsToDelete = listOf("void", "throw", "super", "return", "package", "interface",
+            "emplements", "float", "enum", "char", "break", "default", "try", "this", "structfp",
+            "public", "new", "int", "if", "finally", "else", "continue", "catch", "boolean", "while",
+            "transient", "synchronized", "static", "protected", "native", "instanceof", "goto", "final",
+            "double", "const", "case", "assert", "volatile", "throws", "switch", "short", "private",
+            "long", "import", "for", "extends", "do", "class", "byte", "abstact")
+
+
+
+    /* only for aurora; get set with only needed for train commits */
+    val neededCommitsFile = parentDirectory + File.separator + "${gitDirectoryName}_needed_commits.log"
+    val neededCommit = mutableSetOf<String>()
+    File(neededCommitsFile). forEachLine {
+        neededCommit.add(it)
+    }
 
     val allDiffs = mutableListOf<BlobsDiff>()
     var i = 0
+    var j = 0
+    var k = 0
     File(fullLogFile).forEachLine {
         i += 1
         if (i % 20 == 0) {
@@ -132,43 +154,98 @@ fun allBlobFilesDiff() {
         }
         val list = it.split(separator)
         val commit = list[0]
-        val filePath = list[3]
-        if (filePath.endsWith(".java")) {
-            val oldBlob = list[4]
-            val newBlob = list[5]
-            val msg = list[6]
+        if (commit in neededCommit) { /* only for aurora */
+            j += 1
+            if (j % 20 == 0) {
+                println("N0000W at ${j}")
+            }
+            val filePath = list[3]
+            if (filePath.endsWith(".java")) {
+                val oldBlob = list[4]
+                val newBlob = list[5]
+                val msg = list[6]
 
-            val oldBlobFile = File(blobsDirectory + File.separator + oldBlob)
-            val newBlobFile = File(blobsDirectory + File.separator + newBlob)
+                val oldBlobFile = File(blobsDirectory + File.separator + oldBlob)
+                val newBlobFile = File(blobsDirectory + File.separator + newBlob)
 
-            try {
-                val tokensOldBlob = Java8Parser().tokenizerForBlob(oldBlobFile.inputStream())
-                val tokensNewBlob = Java8Parser().tokenizerForBlob(newBlobFile.inputStream())
+                try {
+                    val tokensOldBlob = Java8Parser().tokenizerForBlob(oldBlobFile.inputStream())
+                    val tokensNewBlob = Java8Parser().tokenizerForBlob(newBlobFile.inputStream())
 
-                val addedTokens = tokensNewBlob.toMutableList().apply {
-                    tokensOldBlob.forEach { remove(it) }
+                    val addedTokens = tokensNewBlob.toMutableList().apply {
+                        tokensOldBlob.forEach { remove(it) }
+                    }
+                    addedTokens.removeAll(separatorsToDelete)
+                    addedTokens.removeAll(operatorsToDelete)
+                    addedTokens.removeAll(keyWordsToDelete)
+
+                    val deletedTokens = tokensOldBlob.toMutableList().apply {
+                        tokensNewBlob.forEach { remove(it) }
+                    }
+                    deletedTokens.removeAll(separatorsToDelete)
+                    deletedTokens.removeAll(operatorsToDelete)
+                    deletedTokens.removeAll(keyWordsToDelete)
+
+                    allDiffs.add(
+                            BlobsDiff(
+                                    commit = commit,
+                                    filePath = filePath,
+                                    addedTokens = addedTokens,
+                                    deletedTokens = deletedTokens,
+                                    message = msg
+                            )
+                    )
+                } catch (e: FileNotFoundException) {
+                    println("Can't find $oldBlob or $newBlob")
                 }
-                val deletedTokens = tokensOldBlob.toMutableList().apply {
-                    tokensNewBlob.forEach { remove(it) }
-                }
-                addedTokens.removeAll(charactersToDelete)
-                deletedTokens.removeAll(charactersToDelete)
+            } else if (filePath.endsWith(".xml")) {
+                k += 1
 
-                allDiffs.add(
-                        BlobsDiff(
-                                commit = commit,
-                                filePath = filePath,
-                                addedTokens = addedTokens,
-                                deletedTokens = deletedTokens,
-                                message = msg
-                        )
-                )
-            } catch (e: FileNotFoundException) {
-                println("Can't find $oldBlob or $newBlob")
+                val oldBlob = list[4]
+                val newBlob = list[5]
+                val msg = list[6]
+
+                val oldBlobFile = File(blobsDirectory + File.separator + oldBlob)
+                val newBlobFile = File(blobsDirectory + File.separator + newBlob)
+
+                try {
+                    val tokensOldBlob = XmlParser().tokenizerForBlob(oldBlobFile.inputStream())
+                    val tokensNewBlob = XmlParser().tokenizerForBlob(newBlobFile.inputStream())
+
+                    val addedTokens = tokensNewBlob.toMutableList().apply {
+                        tokensOldBlob.forEach { remove(it) }
+                    }
+                    addedTokens.removeAll(separatorsToDelete)
+                    addedTokens.removeAll(operatorsToDelete)
+                    addedTokens.removeAll(keyWordsToDelete)
+
+                    val deletedTokens = tokensOldBlob.toMutableList().apply {
+                        tokensNewBlob.forEach { remove(it) }
+                    }
+                    deletedTokens.removeAll(separatorsToDelete)
+                    deletedTokens.removeAll(operatorsToDelete)
+                    deletedTokens.removeAll(keyWordsToDelete)
+
+                    allDiffs.add(
+                            BlobsDiff(
+                                    commit = commit,
+                                    filePath = filePath,
+                                    addedTokens = addedTokens,
+                                    deletedTokens = deletedTokens,
+                                    message = msg
+                            )
+                    )
+                } catch (e: FileNotFoundException) {
+                    println("Can't find $oldBlob or $newBlob")
+                }
             }
         }
     }
 
+    println("Number of xml files $k")
+
     val gson = GsonBuilder().setPrettyPrinting().create()
-    File(outputFile).writeText(gson.toJson(allDiffs))
+    FileWriter(outputFile).use {
+        gson.toJson(allDiffs, it)
+    }
 }
